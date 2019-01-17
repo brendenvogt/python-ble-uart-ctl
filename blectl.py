@@ -3,6 +3,8 @@
 import Adafruit_BluefruitLE
 from Adafruit_BluefruitLE.services import UART
 
+from wificli import Cli
+
 # Get the BLE provider for the current platform.
 ble = Adafruit_BluefruitLE.get_provider()
 
@@ -76,9 +78,6 @@ def main():
                 # see if exit command
                 if rxm == "exit\n":
                     shouldExit = True
-
-                print(f"got: {rxm}")
-                print(f"sending: {txm}")
             else:
                 # Timeout waiting for data, None is returned.
                 print('Received no data!')
@@ -88,7 +87,6 @@ def main():
                 # Write a string to the TX characteristic.
                 message = txm.encode(encoding='utf-8')
                 uart.write(message)
-                print(f"Sent {message} to the device.")
             except Exception as e:
                 print(e)
                 print("Failed to write data")
@@ -99,6 +97,8 @@ def main():
 
 
 def handleCommand(command):
+    x = Cli(command)
+    x.main()
     return command
 
 
