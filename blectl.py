@@ -57,37 +57,49 @@ def main():
         # and start interacting with it.
         uart = UART(device)
 
-        try:
-            # Write a string to the TX characteristic.
+        shouldExit = False
 
-            # note that uart.write expects a byte buffer
-                # Option1
-                # message = "Hello world!"
-                # byteMessage = bytearray()
-                # byteMessage.extend(map(ord, message))
-                # Option2
-                # message = b"Hello world!"
+        while shouldExit == False:
 
-            message = b"Hello world!"
-            uart.write(message)
-            print("Sent 'Hello world!' to the device.")
+            # try get
+            txm = ""
+            rxm = ""
+            # Now wait up to one minute to receive data from the device.
+            received = uart.read(timeout_sec=60)
+            if received is not None:
+                # Received data, print it out.
 
-        except Exception as e:
-            print(e)
-            print("Failed to write data")
+                # try decode
+                rxm = received.decode("utf-8")
+                txm = handleCommand(rxm)
 
-        # Now wait up to one minute to receive data from the device.
-        print('Waiting up to 60 seconds to receive data from the device...')
-        received = uart.read(timeout_sec=60)
-        if received is not None:
-            # Received data, print it out.
-            print('Received: {0}'.format(received))
-        else:
-            # Timeout waiting for data, None is returned.
-            print('Received no data!')
+                # see if exit command
+                if rxm == "exit\n":
+                    shouldExit = True
+
+                print(f"got: {rxm}")
+                print(f"sending: {txm}")
+            else:
+                # Timeout waiting for data, None is returned.
+                print('Received no data!')
+
+            # try send
+            try:
+                # Write a string to the TX characteristic.
+                message = txm.encode(encoding='utf-8')
+                uart.write(message)
+                print(f"Sent {message} to the device.")
+            except Exception as e:
+                print(e)
+                print("Failed to write data")
+
     finally:
         # Make sure device is disconnected on exit.
         device.disconnect()
+
+
+def handleCommand(command):
+    return command
 
 
 # Initialize the BLE system.  MUST be called before other BLE calls!
